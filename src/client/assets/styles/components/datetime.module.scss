@@ -1,0 +1,14 @@
+.datetime {
+  display: flex;
+  flex-direction: column;
+
+  .heading {
+    font-size: 0.8em;
+    margin: 0;
+  }
+
+  .current {
+    font-size: 1em;
+    margin: 0.3em 0;
+  }
+}

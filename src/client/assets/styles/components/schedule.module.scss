@@ -1,0 +1,28 @@
+.schedule {
+  width: 100%;
+  padding: 1em;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+
+  .slot {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    position: relative;
+
+    &:nth-child(odd) {
+      background-color: #f7f7f7;
+    }
+
+    &.active {
+      border: 1px solid rgba(0,0,0,0.5);
+    }
+
+    .day {
+      width: 8em;
+      text-align: left;
+      font-weight: bold;
+    }
+  }
+}

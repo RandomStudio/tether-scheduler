@@ -5,9 +5,23 @@
 
   .header {
     width: 100%;
+    padding: 1em;
+    box-sizing: border-box;
     display: flex;
     flex-direction: row;
     align-items: center;
+
+    &.active {
+      background-color: #D5F2B6;
+    }
+
+    &.asleep {
+      background-color: #B3CDED;
+    }
+
+    &.off {
+      background-color: #E5C0C0;
+    }
 
     .spacer {
       flex-grow: 1;

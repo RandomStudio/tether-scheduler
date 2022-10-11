@@ -4,7 +4,7 @@ import express, { Express, Request, Response } from "express"
 import { Server } from "http"
 import { createHttpTerminator, HttpTerminator } from "http-terminator";
 import { store } from "../redux/store";
-import { setOnState, setOperationMode, updateTiming } from "../redux/slice";
+import { setOnState, setOperationMode, updateFullState, updateTiming } from "../redux/slice";
 import { OperationMode } from "../redux/types";
 import { readFile } from "fs/promises";
 import { logger } from "@tether/tether-agent"
@@ -35,13 +35,11 @@ export default class HTTPServer extends EventEmitter {
     this.expressApp = express()
     this.expressApp.use(express.json())
     this.expressApp.use(express.urlencoded({ extended: true }))
-    this.expressApp.use(express.static(path.join(__dirname, "..", "client")))
+    this.expressApp.use(express.static(path.join(__dirname, "../..", "client")))
+    logger.info(`Serving static files from ${path.join(__dirname, "../..", "client")}`)
 
     this.expressApp.get("/api/state", this.apiGetState)
-    this.expressApp.get("/api/operation/manual", this.apiSetOperationManual)
-    this.expressApp.get("/api/operation/scheduled", this.apiSetOperationScheduled)
-    this.expressApp.get("/api/onoff/:state", this.apiSetOnOffState)
-    this.expressApp.post("/api/schedule/set", this.apiSetOnOffSchedule)
+    this.expressApp.post("/api/state", this.apiSetState)
   }
 
   start = () => {
@@ -72,51 +70,23 @@ export default class HTTPServer extends EventEmitter {
       const buildInfo = await this.loadBuildInfo()
       res.json({
         ...store.getState(),
-        build: buildInfo,
+        build: buildInfo, // provide frontend with latest build info
+        serverTime: Date.now(), // send the current server time to sync the client
       });
     } catch (err) {
       res.status(500).send(err.toString())
     }
   }
 
-  private apiSetOperationManual = async (req: Request, res: Response) => {
-    store.dispatch(setOperationMode(OperationMode.MANUAL))
-    logger.info(`HTTP API: set operation mode to manual`)
-    res.json(store.getState())
-  }
-
-  private apiSetOperationScheduled = async (req: Request, res: Response) => {
-    store.dispatch(setOperationMode(OperationMode.SCHEDULED))
-    logger.info(`HTTP API: set operation mode to scheduled`)
-    res.json(store.getState())
-  }
-
-  private apiSetOnOffState = async (req: Request, res: Response) => {
-    store.dispatch(setOnState(req.params.state === "on"))
-    logger.info(`HTTP API: set on/off state to ${req.params.state === "on" ? "on" : "off"}`)
-    res.json(store.getState())
-  }
-
-  private apiSetOnOffSchedule = async (req: Request, res: Response) => {
-    const schedule = req.body
-    logger.info(`HTTP API: received updated schedule:`, req.body)
-    store.dispatch(updateTiming(schedule))
-    const { dayOfTheWeek, startTime, endTime, enabled } = schedule
-    const dayString = days.find(d => d.id === dayOfTheWeek)?.name
-    if (enabled) {
-      const startTimeString = `${startTime.hours}:${startTime.minutes.toString().padStart(2, "0")}`
-      const endTimeString = `${endTime.hours}:${endTime.minutes.toString().padStart(2, "0")}`
-      logger.info(`HTTP API: set scheduled time for ${dayString} from ${startTimeString} to ${endTimeString}.`)
-    } else {
-      logger.info(`HTTP API: disabled scheduled times for ${dayString}`)
-    }
+  private apiSetState = async (req: Request, res: Response) => {
+    logger.info(`Received state:`, req.body)
+    store.dispatch(updateFullState(req.body))
     this.emit("updated-schedule")
-    res.json(store.getState())
   }
 
   private loadBuildInfo = (): Promise<BuildInfo> => (
     new Promise(async (resolve, reject) => {
-      const filePath: string = path.resolve(__dirname, "..", "build.json")
+      const filePath: string = path.resolve(__dirname, "../..", "build.json")
       logger.info(`Loading build info from path "${filePath}"`)
       try {
         const data = await readFile(filePath)

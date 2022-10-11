@@ -4,7 +4,7 @@ import exitHook from "async-exit-hook"
 import { TetherAgent, logger } from "@tether/tether-agent"
 import { encode } from "@msgpack/msgpack"
 import { store } from "./redux/store"
-import { Time } from "./redux/types"
+import { OperationMode, Time } from "./redux/types"
 import { ConfigOptions } from "./types"
 import HTTPServer from "./http"
 import { setOnState } from "./redux/slice"
@@ -37,23 +37,29 @@ const compareTimes = (a: Time, b: Time): number => {
 }
 
 const checkSchedule = () => {
-  const { schedule: { timings } } = store.getState()
-  const now = new Date()
-  const day = now.getDay()
-  const timing = timings.find(t => t.dayOfTheWeek == day)
-  if (!timing) {
-    logger.warn(`No entry present in schedule for day ${day}`)
-    agent.getOutput("on")?.publish(Buffer.from(encode(false)))
+  const { schedule: { operationMode, timings } } = store.getState()
+  if (operationMode === OperationMode.SCHEDULED) {
+    const now = new Date()
+    const day = now.getDay()
+    const timing = timings.find(t => t.dayOfTheWeek == day)
+    if (!timing) {
+      logger.warn(`No entry present in schedule for day ${day}`)
+      store.dispatch(setOnState(false))
+      agent.getOutput("on")?.publish(Buffer.from(encode(false)))
+    } else {
+      const time = { hours: now.getHours(), minutes: now.getMinutes() }
+      const { enabled, startTime, endTime } = timing
+      const isWithinSchedule =
+        enabled
+        && compareTimes(time, startTime) >= 0
+        && compareTimes(time, endTime) < 0
+      store.dispatch(setOnState(isWithinSchedule))
+      agent.getOutput("on")?.publish(Buffer.from(encode(isWithinSchedule)))
+    }
   } else {
-    const time = { hours: now.getHours(), minutes: now.getMinutes() }
-    const { enabled, startTime, endTime } = timing
-    const isWithinSchedule =
-      enabled
-      && compareTimes(startTime, time) <= 0
-      && compareTimes(endTime, time) > 0
-    store.dispatch(setOnState(isWithinSchedule))
-    logger.trace(`Current on state is ${isWithinSchedule ? 'true' : 'false'}`)
-    agent.getOutput("on")?.publish(Buffer.from(encode(isWithinSchedule)))
+    const { schedule: { on } } = store.getState()
+    logger.debug(`Current on state is ${on}`)
+    agent.getOutput("on")?.publish(Buffer.from(encode(on)))
   }
 }
 
@@ -72,6 +78,7 @@ const start = async () => {
 start()
 
 exitHook(async callback => {
+  logger.info(`Quitting`)
   clearInterval(interval)
   if (httpServer) await httpServer.stop()
   if (agent) await agent.disconnect()
