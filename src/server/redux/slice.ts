@@ -1,5 +1,4 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { readFileSync } from "fs";
 import { OperationMode, SchedulerState, Timing } from "./types";
 
 const initialState: SchedulerState = {

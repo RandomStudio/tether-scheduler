@@ -1,4 +1,5 @@
 import { configureStore } from "@reduxjs/toolkit"
+import { logger } from "@tether/tether-agent"
 import { readFile, writeFile } from "fs/promises"
 import scheduleReducer, { applyState } from "./slice"
 
@@ -12,7 +13,13 @@ export const hydrateStore = async (filePath: string) => {
   try {
     const contents = await readFile(filePath)
     if (contents) {
-      store.dispatch(applyState(JSON.parse(contents.toString()).schedule))
+      const data = JSON.parse(contents.toString())
+      if (!Object.keys(data).includes("schedule")) {
+        logger.warn(`Cannot hydrate store with loaded data; key "schedule" is missing.`)
+      } else {
+        const { schedule } = data
+        store.dispatch(applyState(schedule))
+      }
     }
     else {
       throw new Error('No file contents')
