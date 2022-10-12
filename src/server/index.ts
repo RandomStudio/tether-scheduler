@@ -50,10 +50,14 @@ const checkSchedule = () => {
     } else {
       const time = { hours: now.getHours(), minutes: now.getMinutes() }
       const { enabled, startTime, endTime } = timing
+      if (enabled) {
+        logger.debug(`Determining on state by schedule: ${startTime.hours}:${startTime.minutes.toString().padStart(2, '0')} - ${endTime.hours}:${endTime.minutes.toString().padStart(2, '0')}. Current time: ${time.hours}:${time.minutes.toString().padStart(2, '0')}`)
+      }
       const isWithinSchedule =
         enabled
         && compareTimes(time, startTime) >= 0
         && compareTimes(time, endTime) < 0
+      logger.debug(`Sending scheduled state, on:`, isWithinSchedule)
       store.dispatch(setOnState(isWithinSchedule))
       agent.getOutput("on")?.publish(Buffer.from(encode(isWithinSchedule)))
     }
