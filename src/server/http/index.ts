@@ -68,10 +68,15 @@ export default class HTTPServer extends EventEmitter {
   private apiGetState = async (req: Request, res: Response) => {
     try {
       const buildInfo = await this.loadBuildInfo()
+      const date = new Date()
+      const ms = date.getHours() * 3600000
+        + date.getMinutes() * 60000
+        + date.getSeconds() * 1000
+        + date.getMilliseconds()
       res.json({
         ...store.getState(),
         build: buildInfo, // provide frontend with latest build info
-        serverTime: Date.now(), // send the current server time to sync the client
+        serverTime: ms, // send the current server time to sync the client
       });
     } catch (err) {
       res.status(500).send(err.toString())

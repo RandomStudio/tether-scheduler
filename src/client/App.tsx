@@ -15,22 +15,6 @@ enum SystemOnState {
   OFF = "off",
 }
 
-const isBeforeTime = (a: Date, limit: Time): boolean => {
-  if (a.getHours() > limit.hours) return false
-  if (a.getHours() === limit.hours) {
-    return a.getMinutes() < limit.minutes
-  }
-  return true
-}
-
-const isAfterTime = (a: Date, limit: Time): boolean => {
-  if (a.getHours() < limit.hours) return false
-  if (a.getHours() === limit.hours) {
-    return a.getMinutes() >= limit.minutes
-  }
-  return true
-}
-
 const compareTimes = (a: Time, b: Time): number => {
   const dateA = new Date();
   dateA.setHours(a.hours, a.minutes);

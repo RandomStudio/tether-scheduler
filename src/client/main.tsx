@@ -20,6 +20,13 @@ interface ServerSettings {
   }
 }
 
+const dateToMilliseconds = (date: Date): number => {
+  return date.getHours() * 3600000
+    + date.getMinutes() * 60000
+    + date.getSeconds() * 1000
+    + date.getMilliseconds()
+}
+
 // Perform initial state load from the server to hydrate store
 const hydrate = async (): Promise<ServerSettings> => new Promise(async (resolve, reject) => {
   try {
@@ -40,6 +47,8 @@ const hydrate = async (): Promise<ServerSettings> => new Promise(async (resolve,
           throw new Error(`Incorrect state received; key "schedule.timings" is missing.`)
         }
         store.dispatch(updateFullState(data.schedule as SchedulerState))
+        const ms = dateToMilliseconds(new Date())
+        console.log(`Server time: ${Number(data.serverTime)}, client time: ${ms} -> offset: ${ms - Number(data.serverTime)}`)
         resolve({ time: Number(data.serverTime), build: data.build })
       }
     } else {
@@ -55,7 +64,7 @@ hydrate().then(({ time, build }) => {
   ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
     <React.StrictMode>
       <Provider store={store}>
-        <App timeOffset={ Date.now() - time } build={build} />
+        <App timeOffset={ dateToMilliseconds(new Date()) - time } build={build} />
       </Provider>
     </React.StrictMode>
   )
