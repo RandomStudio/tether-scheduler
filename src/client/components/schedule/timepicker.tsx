@@ -17,14 +17,6 @@ const getItems = (min: number = 0, max: number = 24) => (
   ))
 )
 
-const hrs = new Array(24).fill(0).map((v, idx) => (
-  <MenuItem value={idx}>{ idx.toString().padStart(2, '0') }</MenuItem>
-))
-
-const mins = new Array(60).fill(0).map((v, idx) => (
-  <MenuItem value={idx}>{ idx.toString().padStart(2, '0') }</MenuItem>
-))
-
 const TimePicker: React.FC<TimePickerProps> = ({ from, to, onChange }) => (
   <div className={ styles.timepicker }>
     <p>From</p>

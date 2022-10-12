@@ -4,11 +4,10 @@ import express, { Express, Request, Response } from "express"
 import { Server } from "http"
 import { createHttpTerminator, HttpTerminator } from "http-terminator";
 import { store } from "../redux/store";
-import { setOnState, setOperationMode, updateFullState, updateTiming } from "../redux/slice";
-import { OperationMode } from "../redux/types";
 import { readFile } from "fs/promises";
 import { logger } from "@tether/tether-agent"
 import { BuildInfo, HTTPServerProps } from "./types"
+import { applyState } from "../redux/slice";
 
 const days = Object.freeze([
   { id: 0, name: 'Sunday', short: 'Sun' },
@@ -80,7 +79,7 @@ export default class HTTPServer extends EventEmitter {
 
   private apiSetState = async (req: Request, res: Response) => {
     logger.info(`Received state:`, req.body)
-    store.dispatch(updateFullState(req.body))
+    store.dispatch(applyState(req.body))
     this.emit("updated-schedule")
   }
 

@@ -3,11 +3,12 @@ import rc from "rc"
 import exitHook from "async-exit-hook"
 import { TetherAgent, logger } from "@tether/tether-agent"
 import { encode } from "@msgpack/msgpack"
-import { store } from "./redux/store"
+import { hydrateStore, persistStore, store } from "./redux/store"
 import { OperationMode, Time } from "./redux/types"
 import { ConfigOptions } from "./types"
 import HTTPServer from "./http"
 import { setOnState } from "./redux/slice"
+import { readFile, writeFile } from "fs/promises"
 
 const config: ConfigOptions = parse(rc(
   "scheduler",
@@ -66,12 +67,21 @@ const checkSchedule = () => {
 const start = async () => {
   agent = await TetherAgent.create("scheduler", config.tether, config.loglevel)
   agent.createOutput("on")
+  
+  try {
+    hydrateStore('data.json')
+  } catch(err) {
+    console.warn(err)
+  }
 
   interval = setInterval(checkSchedule, config.emitInterval)
   
   httpServer = new HTTPServer(config.http)
   // respond to manual changes immediately rather than waiting for the next interval
-  httpServer.on("updated-schedule", checkSchedule)
+  httpServer.on("updated-schedule", () => {
+    persistStore('data.json')
+    checkSchedule()
+  })
   httpServer.start()
 }
 

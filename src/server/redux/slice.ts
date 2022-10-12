@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { readFileSync } from "fs";
 import { OperationMode, SchedulerState, Timing } from "./types";
 
 const initialState: SchedulerState = {
@@ -54,7 +55,7 @@ const scheduleSlice = createSlice({
   name: "schedule",
   initialState,
   reducers: {
-    updateFullState(state, action: PayloadAction<SchedulerState>) {
+    applyState(state, action: PayloadAction<SchedulerState>) {
       return {
         ...state,
         ...action.payload
@@ -78,7 +79,7 @@ const scheduleSlice = createSlice({
 })
 
 export const {
-  updateFullState,
+  applyState,
   setOperationMode,
   setOnState,
   updateTiming,
