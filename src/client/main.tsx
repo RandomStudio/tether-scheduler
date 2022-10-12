@@ -47,8 +47,6 @@ const hydrate = async (): Promise<ServerSettings> => new Promise(async (resolve,
           throw new Error(`Incorrect state received; key "schedule.timings" is missing.`)
         }
         store.dispatch(updateFullState(data.schedule as SchedulerState))
-        const ms = dateToMilliseconds(new Date())
-        console.log(`Server time: ${Number(data.serverTime)}, client time: ${ms} -> offset: ${ms - Number(data.serverTime)}`)
         resolve({ time: Number(data.serverTime), build: data.build })
       }
     } else {
