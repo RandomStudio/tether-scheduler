@@ -1,11 +1,9 @@
-import React, { useLayoutEffect, useState } from 'react'
+import React, { useEffect, useLayoutEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { RootState, store } from './redux/store'
 import { setOnState, setOperationMode } from './redux/slice'
 import { OperationMode, Time, Timing } from './redux/types'
-import Checkbox from '@mui/material/Checkbox'
-import Switch from "@mui/material/Switch"
-import FormControlLabel from "@mui/material/FormControlLabel"
+import { Button, Checkbox, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, Switch } from '@mui/material'
 import DateTime from './components/datetime'
 import Schedule from './components/schedule'
 
@@ -53,20 +51,33 @@ const isWithinScheduledTimes = (now: number, timings: Timing[]): boolean => {
 }
 
 interface AppProps {
-  timeOffset: number
+  timeOffset: number,
+  build: {
+    commit: string
+    time: number
+  }
 }
 
-const App: React.FC<AppProps> = ({ timeOffset }) => {
+const App: React.FC<AppProps> = ({ timeOffset, build }) => {
   const { operationMode, on, timings } = useSelector((state: RootState) => state.schedule)
 
   const [ now, setNow ] = useState(Date.now() - timeOffset)
-  const [ interval, updateInterval ] = useState<NodeJS.Timer | void>()
+  const [ updateInterval, setUpdateInterval ] = useState<NodeJS.Timer | void>()
+  const [ doCheckBuild, setDoCheckBuild ] = useState<boolean>(true)
+  const [ isUpdateAvailable, setIsUpdateAvailable ] = useState<boolean>(false)
 
   useLayoutEffect(() => {
-    updateInterval(setInterval(() => setNow(Date.now() - timeOffset), 1000))
+    setUpdateInterval(setInterval(() => {
+      setNow(Date.now() - timeOffset)
+    }, 1000))
+
+    setDoCheckBuild(true)
+    checkBuild()
+
     return () => {
-      if (interval) {
-        updateInterval(clearInterval(interval))
+      if (updateInterval) {
+        setUpdateInterval(clearInterval(updateInterval))
+        setDoCheckBuild(false)
       }
     }
   }, [])
@@ -76,6 +87,38 @@ const App: React.FC<AppProps> = ({ timeOffset }) => {
     if (isOn !== on) {
       store.dispatch(setOnState(isOn))
     }
+  }
+
+  const checkBuild = async () => {
+    try {
+      const response = await fetch('/api/build', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' }
+      })
+      if (response.ok) {
+        const data = await response.json()
+        if (data) {
+          console.log(`Loaded build info from server:`, data)
+          if (!Object.keys(data).includes('commit')) {
+            throw new Error(`Incorrect build info received; key "commit" is missing.`)
+          }
+          if (!Object.keys(data).includes('time')) {
+            throw new Error(`Incorrect state received; key "time" is missing.`)
+          }
+          if (doCheckBuild) {
+            const { commit, time } = data
+            if (build && (commit !== build.commit || time !== build.time)) {
+              setIsUpdateAvailable(true)
+            }
+          }
+        }
+      } else {
+        throw new Error(response.status.toString())
+      }
+    } catch(err) {
+      console.error(err);
+    }
+    if (doCheckBuild) setTimeout(() => checkBuild(), 5000)
   }
   
   // When running on a schedule, the system is either active or asleep. When manual, it's on or off.
@@ -123,6 +166,15 @@ const App: React.FC<AppProps> = ({ timeOffset }) => {
         <DateTime date={now} />
       </div>
       <Schedule />
+      <Dialog open={isUpdateAvailable}>
+        <DialogTitle>Update</DialogTitle>
+        <DialogContent>
+          There is an update available. Click "Reload" to refresh the page and use the updated interface.
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => document.location.reload()}>Reload</Button>
+        </DialogActions>
+      </Dialog>
     </div>
   )
 }

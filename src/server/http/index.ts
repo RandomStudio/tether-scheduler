@@ -39,6 +39,7 @@ export default class HTTPServer extends EventEmitter {
 
     this.expressApp.get("/api/state", this.apiGetState)
     this.expressApp.post("/api/state", this.apiSetState)
+    this.expressApp.get("/api/build", this.apiGetBuild)
   }
 
   start = () => {
@@ -83,10 +84,19 @@ export default class HTTPServer extends EventEmitter {
     this.emit("updated-schedule")
   }
 
+  private apiGetBuild = async (req: Request, res: Response) => {
+    try {
+      const buildInfo = await this.loadBuildInfo()
+      res.json(buildInfo)
+    } catch (err) {
+      res.status(500).send(err.toString())
+    }
+  }
+
   private loadBuildInfo = (): Promise<BuildInfo> => (
     new Promise(async (resolve, reject) => {
       const filePath: string = path.resolve(__dirname, "../..", "build.json")
-      logger.info(`Loading build info from path "${filePath}"`)
+      logger.debug(`Loading build info from path "${filePath}"`)
       try {
         const data = await readFile(filePath)
         try {
