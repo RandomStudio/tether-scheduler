@@ -5,6 +5,10 @@ info:
   description: |
     Tether agent that emits basic on/off state messages based on a schedule that can be edited via an exposed browser UI.
 
+externalDocs:
+  description: This agent works nicely with the Tether PM2 agent, although the outgoing messages can be used by any other agent.
+  url: https://github.com/RandomStudio/tether-pm2
+
 servers:
   $ref: "https://raw.githubusercontent.com/RandomStudio/tether/asyncapi/tether.yml#/components/servers"
 
