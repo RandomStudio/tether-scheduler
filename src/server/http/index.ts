@@ -6,8 +6,9 @@ import { createHttpTerminator, HttpTerminator } from "http-terminator";
 import { store } from "../redux/store";
 import { readFile } from "fs/promises";
 import { logger } from "@tether/tether-agent"
-import { BuildInfo, HTTPServerProps } from "./types"
+import { BuildInfo } from "./types"
 import { applyState } from "../redux/slice";
+import { HTTPServerProps } from "../config/types";
 
 const days = Object.freeze([
   { id: 0, name: 'Sunday', short: 'Sun' },

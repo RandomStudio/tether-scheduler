@@ -1,0 +1,42 @@
+asyncapi: '2.4.0'
+info:
+  title: Tether Scheduler Agent
+  version: '1.0.0'
+  description: |
+    Tether agent that emits basic on/off state messages based on a schedule that can be edited via an exposed browser UI.
+
+servers:
+  $ref: "https://raw.githubusercontent.com/RandomStudio/tether/asyncapi/tether.yml#/components/servers"
+
+channels:
+  scheduler/{agentIdOrGroup}/on:
+    description:
+      $ref: "https://raw.githubusercontent.com/RandomStudio/tether-scheduler/main/tether.yml#/components/channels/on/description"
+    parameters:
+      $ref: "https://raw.githubusercontent.com/RandomStudio/tether-scheduler/main/tether.yml#/components/channels/on/parameters"
+    subscribe:
+      $ref: "https://raw.githubusercontent.com/RandomStudio/tether-scheduler/main/tether.yml#/components/channels/on/subscribe"
+
+components:
+  channels:
+    on:
+      description: A single boolean value indicating the current on/off state, as driven by the existing schedule configuration.
+      parameters:
+        agentIdOrGroup:
+          $ref: "https://raw.githubusercontent.com/RandomStudio/tether/asyncapi/tether.yml#/components/parameters/agentIdOrGroup"
+      subscribe:
+        summary: Output Plug for boolean on/off state values
+        message:
+          $ref: "#/components/messages/on"
+  
+  messages:
+    on:
+      name: on
+      title: On State
+      summary: The current on/off state as driven by the schedule configuration
+      payload:
+        $ref: "#/components/schemas/onPayload"
+  
+  schemas:
+    onPayload:
+      type: boolean

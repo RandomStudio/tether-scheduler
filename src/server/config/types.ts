@@ -1,5 +1,8 @@
 import { IClientOptions, logger } from "@tether/tether-agent"
-import { HTTPServerProps } from "./http/types"
+
+export interface HTTPServerProps {
+  port: number
+}
 
 export interface ConfigOptions {
   loglevel: logger.LogLevelDesc

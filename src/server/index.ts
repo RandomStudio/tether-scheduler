@@ -5,7 +5,7 @@ import { TetherAgent, logger } from "@tether/tether-agent"
 import { encode } from "@msgpack/msgpack"
 import { hydrateStore, persistStore, store } from "./redux/store"
 import { OperationMode, Time } from "./redux/types"
-import { ConfigOptions } from "./types"
+import { ConfigOptions } from "./config/types"
 import HTTPServer from "./http"
 import { setOnState } from "./redux/slice"
 import { readFile, writeFile } from "fs/promises"
@@ -20,7 +20,7 @@ const config: ConfigOptions = parse(rc(
       port: 1883
     },
     http: {
-      port: 3000
+      port: 5555
     }
   }
 ))
