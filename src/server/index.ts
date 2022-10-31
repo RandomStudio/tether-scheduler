@@ -69,8 +69,13 @@ const checkSchedule = () => {
 }
 
 const start = async () => {
-  agent = await TetherAgent.create("scheduler", config.tether, config.loglevel)
-  agent.createOutput("on")
+  try {
+    agent = await TetherAgent.create("scheduler", config.tether, config.loglevel)
+    agent.createOutput("on")
+  } catch (err) {
+    logger.error(`Cannot create Tether agent.`, err)
+    process.exit(-1)
+  }
   
   try {
     hydrateStore('data.json')
