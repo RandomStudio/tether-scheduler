@@ -19,4 +19,5 @@ export interface SchedulerState {
   operationMode: OperationMode
   on: boolean
   timings: Timing[]
+  busy: boolean
 };

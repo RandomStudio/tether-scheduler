@@ -27,4 +27,34 @@
       flex-grow: 1;
     }
   }
+
+  .busy {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: all;
+    background-color: rgba(255, 255, 255, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    >* {
+      animation: rotation 2s infinite linear;
+      
+      &:focus {
+        outline: none;
+      }
+    }
+
+    @keyframes rotation {
+      from {
+        transform: rotate(0deg);
+      }
+      to {
+        transform: rotate(-360deg);
+      }
+    }
+  }
 }

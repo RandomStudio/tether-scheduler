@@ -2,6 +2,7 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { OperationMode, SchedulerState, Timing } from "./types";
 
 const initialState: SchedulerState = {
+  busy: false,
   operationMode: OperationMode.SCHEDULED,
   on: false,
   timings: [
@@ -50,7 +51,7 @@ const initialState: SchedulerState = {
   ]
 }
 
-const persist = async (state: any) => {
+const persist = (state: any): Promise<void> => new Promise(async (resolve, reject) => {
   try {
     const response = await fetch('/api/state', {
       method: 'POST',
@@ -60,13 +61,14 @@ const persist = async (state: any) => {
       body: JSON.stringify(state)
     })
     if (response.ok) {
-      return response.json();
-    } 
-    throw new Error(response.status.toString());
+      resolve();
+    } else {
+      throw new Error(response.status.toString());
+    }
   } catch(err) {
-    console.error(err);
+    reject(err);
   }
-}
+})
 
 const scheduleSlice = createSlice({
   name: "schedule",
@@ -80,11 +82,25 @@ const scheduleSlice = createSlice({
     },
     setOperationMode(state, action: PayloadAction<OperationMode>) {
       state.operationMode = action.payload
-      persist({ operationMode: action.payload })
+      state.busy = true
+      try {
+        persist({ operationMode: action.payload })
+      } catch (err) {
+        console.error(err);
+      } finally {
+        state.busy = false
+      }
     },
     setOnState(state, action: PayloadAction<boolean>) {
       state.on = action.payload
-      persist({ on: action.payload })
+      state.busy = true
+      try {
+        persist({ on: action.payload })
+      } catch (err) {
+        console.error(err);
+      } finally {
+        state.busy = false
+      }
     },
     updateTiming(state, action: PayloadAction<Timing>) {
       const timing = state.timings.find(t => t.dayOfTheWeek === action.payload.dayOfTheWeek)
@@ -92,7 +108,14 @@ const scheduleSlice = createSlice({
         timing.startTime = action.payload.startTime
         timing.endTime = action.payload.endTime
         timing.enabled = action.payload.enabled
-        persist({ timings: state.timings })
+        state.busy = true
+        try {
+          persist({ timings: state.timings })
+        } catch (err) {
+          console.error(err);
+        } finally {
+          state.busy = false
+        }
       }
     }
   }

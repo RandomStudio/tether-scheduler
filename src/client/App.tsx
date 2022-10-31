@@ -3,7 +3,8 @@ import { useSelector } from 'react-redux'
 import { RootState, store } from './redux/store'
 import { setOnState, setOperationMode } from './redux/slice'
 import { OperationMode, Time, Timing } from './redux/types'
-import { Button, Checkbox, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, Switch } from '@mui/material'
+import { Button, Checkbox, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, Modal, Switch } from '@mui/material'
+import SyncIcon from '@mui/icons-material/Sync'
 import DateTime from './components/datetime'
 import Schedule from './components/schedule'
 
@@ -43,7 +44,7 @@ interface AppProps {
 }
 
 const App: React.FC<AppProps> = ({ timeOffset, build }) => {
-  const { operationMode, on, timings } = useSelector((state: RootState) => state.schedule)
+  const { operationMode, on, timings, busy } = useSelector((state: RootState) => state.schedule)
 
   const [ now, setNow ] = useState(Date.now() - timeOffset)
   const [ updateInterval, setUpdateInterval ] = useState<NodeJS.Timer | void>()
@@ -51,6 +52,9 @@ const App: React.FC<AppProps> = ({ timeOffset, build }) => {
   const [ isUpdateAvailable, setIsUpdateAvailable ] = useState<boolean>(false)
 
   useLayoutEffect(() => {
+    if (updateInterval) {
+      clearInterval(updateInterval)
+    }
     setUpdateInterval(setInterval(() => {
       setNow(Date.now() - timeOffset)
     }, 1000))
@@ -74,6 +78,7 @@ const App: React.FC<AppProps> = ({ timeOffset, build }) => {
   }
 
   const checkBuild = async () => {
+    console.log("Retrieving build info")
     try {
       const response = await fetch('/api/build', {
         method: 'GET',
@@ -150,6 +155,11 @@ const App: React.FC<AppProps> = ({ timeOffset, build }) => {
         <DateTime date={now} />
       </div>
       <Schedule />
+      { busy && (
+        <div className={styles.busy}>
+          <SyncIcon />
+        </div>
+      )}
       <Dialog open={isUpdateAvailable}>
         <DialogTitle>Update</DialogTitle>
         <DialogContent>

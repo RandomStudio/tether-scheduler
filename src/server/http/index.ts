@@ -88,6 +88,7 @@ export default class HTTPServer extends EventEmitter {
     logger.info(`Received state:`, req.body)
     store.dispatch(applyState(req.body))
     this.emit("updated-schedule")
+    res.sendStatus(200)
   }
 
   private apiGetBuild = async (req: Request, res: Response) => {
