@@ -20,4 +20,5 @@ export interface SchedulerState {
   on: boolean
   timings: Timing[]
   busy: boolean
+  persistError: string | null
 };

@@ -1,8 +1,10 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { OperationMode, SchedulerState, Timing } from "./types";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit"
+import { store } from "./store"
+import { OperationMode, SchedulerState, Timing } from "./types"
 
 const initialState: SchedulerState = {
   busy: false,
+  persistError: null,
   operationMode: OperationMode.SCHEDULED,
   on: false,
   timings: [
@@ -51,24 +53,26 @@ const initialState: SchedulerState = {
   ]
 }
 
-const persist = (state: any): Promise<void> => new Promise(async (resolve, reject) => {
+const persist = async (state: SchedulerState, data: any) => {
+  store.dispatch(startFetch)
   try {
     const response = await fetch('/api/state', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(state)
+      body: JSON.stringify(data)
     })
-    if (response.ok) {
-      resolve();
+    if (!response.ok) {
+      // throw new Error(response.status.toString());
+      store.dispatch(finishFetch(`Could not fetch, response status: ${response.status.toString()}`))
     } else {
-      throw new Error(response.status.toString());
+      store.dispatch(finishFetch(null))
     }
   } catch(err) {
-    reject(err);
+    store.dispatch(finishFetch(`Could not fetch, error: ${err}`))
   }
-})
+}
 
 const scheduleSlice = createSlice({
   name: "schedule",
@@ -82,25 +86,11 @@ const scheduleSlice = createSlice({
     },
     setOperationMode(state, action: PayloadAction<OperationMode>) {
       state.operationMode = action.payload
-      state.busy = true
-      try {
-        persist({ operationMode: action.payload })
-      } catch (err) {
-        console.error(err);
-      } finally {
-        state.busy = false
-      }
+      persist(state, { operationMode: action.payload })
     },
     setOnState(state, action: PayloadAction<boolean>) {
       state.on = action.payload
-      state.busy = true
-      try {
-        persist({ on: action.payload })
-      } catch (err) {
-        console.error(err);
-      } finally {
-        state.busy = false
-      }
+      persist(state, { on: action.payload })
     },
     updateTiming(state, action: PayloadAction<Timing>) {
       const timing = state.timings.find(t => t.dayOfTheWeek === action.payload.dayOfTheWeek)
@@ -108,15 +98,16 @@ const scheduleSlice = createSlice({
         timing.startTime = action.payload.startTime
         timing.endTime = action.payload.endTime
         timing.enabled = action.payload.enabled
-        state.busy = true
-        try {
-          persist({ timings: state.timings })
-        } catch (err) {
-          console.error(err);
-        } finally {
-          state.busy = false
-        }
+        persist(state, { timings: state.timings })
       }
+    },
+    startFetch(state, action: PayloadAction<void>) {
+      state.busy = true
+      state.persistError = null
+    },
+    finishFetch(state, action: PayloadAction<string | null>) {
+      state.busy = false
+      state.persistError = action.payload
     }
   }
 })
@@ -126,6 +117,8 @@ export const {
   setOperationMode,
   setOnState,
   updateTiming,
+  startFetch,
+  finishFetch,
 } = scheduleSlice.actions
 
 export default scheduleSlice.reducer

@@ -44,7 +44,7 @@ interface AppProps {
 }
 
 const App: React.FC<AppProps> = ({ timeOffset, build }) => {
-  const { operationMode, on, timings, busy } = useSelector((state: RootState) => state.schedule)
+  const { operationMode, on, timings, busy, persistError } = useSelector((state: RootState) => state.schedule)
 
   const [ now, setNow ] = useState(Date.now() - timeOffset)
   const [ updateInterval, setUpdateInterval ] = useState<NodeJS.Timer | void>()
@@ -155,6 +155,28 @@ const App: React.FC<AppProps> = ({ timeOffset, build }) => {
         <DateTime date={now} />
       </div>
       <Schedule />
+      { persistError !== null && (
+        <div className={ styles.error }>
+          {`An error occurred when saving. ${persistError}`}
+        </div>
+      )}
+      <Dialog open={persistError !== null}>
+        <DialogTitle>An error occurred</DialogTitle>
+        <DialogContent>
+          <p>An error occurred when saving data:</p>
+          <p style={{
+            backgroundColor: `rgba(255,0,0,0.25)`,
+            color: `#600`, padding: `0.5em`, boxSizing: `border-box`,
+          }}>{persistError}</p>
+          <p>
+            Please try making your change again after reloading the page.<br/>
+            If the error persists or the page will not successfully reload, please contact support.
+          </p>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => document.location.reload()}>Reload</Button>
+        </DialogActions>
+      </Dialog>
       { busy && (
         <div className={styles.busy}>
           <SyncIcon />
