@@ -1,4 +1,4 @@
-import { IClientOptions, logger } from "@tether/tether-agent"
+import { IClientOptions, logger } from "@randomstudio/tether"
 
 export interface HTTPServerProps {
   port: number

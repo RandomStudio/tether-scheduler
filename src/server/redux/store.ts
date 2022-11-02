@@ -1,5 +1,5 @@
 import { configureStore } from "@reduxjs/toolkit"
-import { logger } from "@tether/tether-agent"
+import { logger } from "@randomstudio/tether"
 import { readFile, writeFile } from "fs/promises"
 import scheduleReducer, { applyState } from "./slice"
 

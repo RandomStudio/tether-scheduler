@@ -5,7 +5,7 @@ import { Server } from "http"
 import { createHttpTerminator, HttpTerminator } from "http-terminator";
 import { store } from "../redux/store";
 import { readFile } from "fs/promises";
-import { logger } from "@tether/tether-agent"
+import { logger } from "@randomstudio/tether"
 import { BuildInfo } from "./types"
 import { applyState } from "../redux/slice";
 import { HTTPServerProps } from "../config/types";
