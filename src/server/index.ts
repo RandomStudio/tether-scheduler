@@ -1,14 +1,14 @@
-import parse from "parse-strings-in-object"
-import rc from "rc"
-import exitHook from "async-exit-hook"
-import { TetherAgent, logger } from "@randomstudio/tether"
-import { encode } from "@msgpack/msgpack"
-import { hydrateStore, persistStore, store } from "./redux/store"
-import { OperationMode, Time } from "./redux/types"
-import { ConfigOptions } from "./config/types"
-import HTTPServer from "./http"
-import { setOnState } from "./redux/slice"
-import { readFile, writeFile } from "fs/promises"
+import { encode } from '@msgpack/msgpack';
+import { logger, TetherAgent } from '@randomstudio/tether';
+import exitHook from 'async-exit-hook';
+import parse from 'parse-strings-in-object';
+import rc from 'rc';
+
+import { ConfigOptions } from './config/types';
+import HTTPServer from './http';
+import { setOnState } from './redux/slice';
+import { hydrateStore, persistStore, store } from './redux/store';
+import { OperationMode, Time } from './redux/types';
 
 const config: ConfigOptions = parse(rc(
   "scheduler",
@@ -46,7 +46,7 @@ const checkSchedule = () => {
     if (!timing) {
       logger.warn(`No entry present in schedule for day ${day}`)
       store.dispatch(setOnState(false))
-      agent.getOutput("on")?.publish(Buffer.from(encode(false)), { qos: 1, retain: true })
+      agent.getOutput("on")?.publish(Buffer.from(encode(false)), { qos: 2, retain: true })
     } else {
       const time = { hours: now.getHours(), minutes: now.getMinutes() }
       const { enabled, startTime, endTime } = timing
@@ -59,12 +59,12 @@ const checkSchedule = () => {
         && compareTimes(time, endTime) < 0
       logger.debug(`Sending scheduled state, on:`, isWithinSchedule)
       store.dispatch(setOnState(isWithinSchedule))
-      agent.getOutput("on")?.publish(Buffer.from(encode(isWithinSchedule)), { qos: 1, retain: true })
+      agent.getOutput("on")?.publish(Buffer.from(encode(isWithinSchedule)), { qos: 2, retain: true })
     }
   } else {
     const { schedule: { on } } = store.getState()
     logger.debug(`Current on state is ${on}`)
-    agent.getOutput("on")?.publish(Buffer.from(encode(on)), { qos: 1, retain: true })
+    agent.getOutput("on")?.publish(Buffer.from(encode(on)), { qos: 2, retain: true })
   }
 }
 
