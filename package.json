@@ -16,8 +16,8 @@
     "@msgpack/msgpack": "^2.8.0",
     "@mui/icons-material": "^5.10.9",
     "@mui/material": "^5.10.8",
-    "@reduxjs/toolkit": "^1.8.5",
     "@randomstudio/tether": "^2.7.1",
+    "@reduxjs/toolkit": "^1.8.5",
     "async-exit-hook": "^2.0.1",
     "express": "^4.18.2",
     "http": "^0.0.1-security",
@@ -28,7 +28,8 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-redux": "^8.0.4",
-    "redux": "^4.2.0"
+    "redux": "^4.2.0",
+    "shell-exec": "^1.1.2"
   },
   "devDependencies": {
     "@redux-devtools/core": "^3.13.1",

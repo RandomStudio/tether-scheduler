@@ -3,6 +3,7 @@ import { logger, TetherAgent } from '@randomstudio/tether';
 import exitHook from 'async-exit-hook';
 import parse from 'parse-strings-in-object';
 import rc from 'rc';
+import shellExec from 'shell-exec';
 
 import { ConfigOptions } from './config/types';
 import HTTPServer from './http';
@@ -91,6 +92,9 @@ const start = async () => {
   httpServer.on("updated-schedule", () => {
     persistStore('data.json')
     checkSchedule()
+  })
+  httpServer.on("shutdown-requested", () => {
+    shellExec('shutdown -s now')
   })
   httpServer.start()
 }

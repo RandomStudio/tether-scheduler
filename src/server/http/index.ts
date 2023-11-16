@@ -1,14 +1,15 @@
-import path from "path"
-import EventEmitter from "events"
-import express, { Express, Request, Response } from "express"
-import { Server } from "http"
-import { createHttpTerminator, HttpTerminator } from "http-terminator";
-import { store } from "../redux/store";
-import { readFile } from "fs/promises";
-import { logger } from "@randomstudio/tether"
-import { BuildInfo } from "./types"
-import { applyState } from "../redux/slice";
-import { HTTPServerProps } from "../config/types";
+import { logger } from '@randomstudio/tether';
+import EventEmitter from 'events';
+import express, { Express, Request, Response } from 'express';
+import { readFile } from 'fs/promises';
+import { Server } from 'http';
+import { createHttpTerminator, HttpTerminator } from 'http-terminator';
+import path from 'path';
+
+import { HTTPServerProps } from '../config/types';
+import { applyState } from '../redux/slice';
+import { store } from '../redux/store';
+import { BuildInfo } from './types';
 
 const days = Object.freeze([
   { id: 0, name: 'Sunday', short: 'Sun' },
@@ -41,6 +42,7 @@ export default class HTTPServer extends EventEmitter {
     this.expressApp.get("/api/state", this.apiGetState)
     this.expressApp.post("/api/state", this.apiSetState)
     this.expressApp.get("/api/build", this.apiGetBuild)
+    this.expressApp.post("/api/shutdown", this.apiShutdown)
   }
 
   start = () => {
@@ -120,4 +122,10 @@ export default class HTTPServer extends EventEmitter {
       }
     })
   )
+
+  private apiShutdown = async (req: Request, res: Response) => {
+    logger.info(`Received shutdown request`)
+    this.emit("shutdown-requested")
+    res.sendStatus(200)
+  }
 }
